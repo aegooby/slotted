@@ -12,5 +12,9 @@
     "@cloudflare/workers-types": "^4.20240815.0",
     "typescript": "^5.5.2",
     "wrangler": "^3.60.3"
+  },
+  "dependencies": {
+    "@upstash/redis": "^1.34.0",
+    "resend": "^4.0.0"
   }
 }
