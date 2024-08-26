@@ -42,7 +42,7 @@ export default {
 		});
 		if (response.ok) {
 			const body = await response.json();
-			console.log("Received response from Slotted GraphQL API:", JSON.stringify(body, undefined, 2));
+			console.log("Received response from Slotted GraphQL API:", JSON.stringify(body));
 			const events = (body as any).data.sheet.events;
 			if (events.length > 0) {
 				const date = events[0].date;
