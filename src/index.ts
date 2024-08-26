@@ -28,9 +28,7 @@ const emails: string[] = [
 ];
 
 export default {
-	// The scheduled handler is invoked at the interval set in our wrangler.toml's
-	// [[triggers]] configuration.
-	async scheduled(event, env: Env, ctx): Promise<void> {
+	async scheduled(_event, env: Env, _ctx): Promise<void> {
     const resend = new Resend(env.RESEND_API_KEY);
 		const redis = Redis.fromEnv(env);
 		const response = await fetch('https://slotted.co/graphql', {
@@ -51,18 +49,24 @@ export default {
 				const lastDate = await redis.get<string>("date");
 				if (date !== lastDate) {
 					console.log("Found new event sheet with date:", date);
-					const emailResult = await resend.emails.send({
-						from: "slotted@zeeyadkay.com",
-						to: emails,
-						subject: "Flow State Mic List Available",
-						html: '<p><a href="https://slotted.co/flowstatemic">Sign Up</a></p>'
-					});
-					if (emailResult.error) {
-						console.error("Email error:", emailResult.error.message);
-						throw new Error(emailResult.error.message);
+					const errors = [] as Error[];
+					for (const email of emails) {
+						const emailResult = await resend.emails.send({
+							from: "Slotted <slotted@zeeyadkay.com>",
+							to: email,
+							subject: "Flow State Mic List Available",
+							html: '<p><a href="https://slotted.co/flowstatemic">Sign Up</a></p>'
+						});
+						if (emailResult.error) {
+							console.error("Failed to send email to", email, "with error:", emailResult.error.message);
+							errors.push(new Error(emailResult.error.message));
+						}
+						console.log("Sent email to", email, "with id:", emailResult.data?.id);
 					}
-					console.log("Sent email with ID:", emailResult.data?.id);
 					await redis.set("date", date);
+					if (errors.length > 0) {
+						throw errors;
+					}
 				}
 			}
 		} else {
